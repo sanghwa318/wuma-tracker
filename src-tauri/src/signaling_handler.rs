@@ -15,8 +15,10 @@ use std::sync::Arc;
 use std::time::Duration;
 use tauri::AppHandle;
 use tokio::sync::{Mutex, mpsc, oneshot};
-use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
+use tokio_tungstenite::tungstenite::protocol::WebSocketConfig;
+use tokio_tungstenite::connect_async_tls_with_config;
+use tokio_tungstenite::Connector;
 use tower_http::cors::{Any, CorsLayer};
 use uuid::Uuid;
 
@@ -136,10 +138,24 @@ impl SignalingHandler {
             old_session.shutdown_handle.abort();
         }
 
-        // 2. 새로운 WebSocket 연결을 수립합니다.
-        let (ws_stream, _) = connect_async(&url)
-            .await
-            .map_err(|e| format!("외부 시그널링 서버 연결 실패: {}", e))?;
+       // 2. 자체 서명 인증서를 허용하는 커스텀 TLS 커넥터 생성
+        let tls_connector = {
+            let config = rustls::ClientConfig::builder()
+                .dangerous()
+                .with_custom_certificate_verifier(Arc::new(NoCertVerifier))
+                .with_no_client_auth();
+            Connector::Rustls(Arc::new(tokio_rustls::TlsConnector::from(Arc::new(config)).into()))
+        };
+
+        // 3. 새로운 WebSocket 연결을 수립합니다 (인증서 검증 없이).
+        let (ws_stream, _) = connect_async_tls_with_config(
+            &url,
+            Some(WebSocketConfig::default()),
+            false,
+            Some(tls_connector),
+        )
+        .await
+        .map_err(|e| format!("외부 시그널링 서버 연결 실패: {}", e))?;
 
         log::info!(
             "Successfully connected to external signaling server: {}",
@@ -378,5 +394,45 @@ impl SignalingHandler {
             log::error!("[{}] Failed to send Disconnected signal.", client_id);
         }
         log::info!("[{}] Client disconnected and cleaned up.", client_id);
+    }
+}
+// 자체 서명 인증서를 허용하는 커스텀 TLS 검증기 (로컬 프록시 전용)
+#[derive(Debug)]
+struct NoCertVerifier;
+
+impl rustls::client::danger::ServerCertVerifier for NoCertVerifier {
+    fn verify_server_cert(
+        &self,
+        _end_entity: &rustls::pki_types::CertificateDer<'_>,
+        _intermediates: &[rustls::pki_types::CertificateDer<'_>],
+        _server_name: &rustls::pki_types::ServerName<'_>,
+        _ocsp_response: &[u8],
+        _now: rustls::pki_types::UnixTime,
+    ) -> Result<rustls::client::danger::ServerCertVerified, rustls::Error> {
+        Ok(rustls::client::danger::ServerCertVerified::assertion())
+    }
+
+    fn verify_tls12_signature(
+        &self,
+        _message: &[u8],
+        _cert: &rustls::pki_types::CertificateDer<'_>,
+        _dss: &rustls::DigitallySignedStruct,
+    ) -> Result<rustls::client::danger::HandshakeSignatureValid, rustls::Error> {
+        Ok(rustls::client::danger::HandshakeSignatureValid::assertion())
+    }
+
+    fn verify_tls13_signature(
+        &self,
+        _message: &[u8],
+        _cert: &rustls::pki_types::CertificateDer<'_>,
+        _dss: &rustls::DigitallySignedStruct,
+    ) -> Result<rustls::client::danger::HandshakeSignatureValid, rustls::Error> {
+        Ok(rustls::client::danger::HandshakeSignatureValid::assertion())
+    }
+
+    fn supported_verify_schemes(&self) -> Vec<rustls::SignatureScheme> {
+        rustls::crypto::aws_lc_rs::default_provider()
+            .signature_verification_algorithms
+            .supported_schemes()
     }
 }

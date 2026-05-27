@@ -26,11 +26,13 @@ jobs:
         run: npm install -g pnpm@9
 
       - name: install frontend dependencies
-        run: pnpm install --no-frozen-lockfile --config.confirmModulesPurge=false
+        run: |
+          pnpm install --no-frozen-lockfile
+          pnpm approve-builds
         env:
           PNPM_ALLOW_BUILDS: esbuild
 
-       - uses: tauri-apps/tauri-action@v0
+      - uses: tauri-apps/tauri-action@v0.5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PNPM_ALLOW_BUILDS: esbuild
@@ -40,4 +42,3 @@ jobs:
           releaseBody: "See the assets to download this version and install."
           releaseDraft: true
           prerelease: false
-          args: --no-bundle

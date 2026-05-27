@@ -186,7 +186,7 @@ impl RtcSupervisor {
                         }
                         SupervisorCommand::RestartExternalConnection(responder) => {
                             let code = generate_room_code_base36();
-                            match self.signaling_handler.connect_to_external_server(app_handle.clone(), format!("wss://concourse.wuwa.moe/{}?role=server", code.clone())).await {
+                            match self.signaling_handler.connect_to_external_server(app_handle.clone(), format!("wss://172.30.1.19:46822/{}?role=server", code.clone())).await {
                                 Ok(_) => {
                                     let _ = util::mutate_global_state(app_handle.clone(), |old| GlobalState {
                                         external_connection_code: Some(code.clone()),

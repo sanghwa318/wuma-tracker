@@ -25,7 +25,7 @@
     }
   },
   "bundle": {
-    "createUpdaterArtifacts": true,
+    "createUpdaterArtifacts": false,
     "active": true,
     "targets": "all",
     "category": "Utility",
@@ -45,14 +45,6 @@
         "languages": ["Korean", "English"],
         "displayLanguageSelector": true
       }
-    }
-  },
-  "plugins": {
-    "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDZEQjU1NTVCNjAxRjlCQUQKUldTdG14OWdXMVcxYldPMkoweFg3bGJzRElCNnVWZUdxSldJWks0cTcwakpjY2tqTkErTytYK20K",
-      "endpoints": [
-        "https://github.com/wuwamoe/wuma-tracker/releases/latest/download/latest.json"
-      ]
     }
   }
 }

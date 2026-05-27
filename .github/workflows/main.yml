@@ -28,7 +28,6 @@ jobs:
       - name: install frontend dependencies
         run: |
           pnpm install --no-frozen-lockfile
-          pnpm approve-builds
         env:
           PNPM_ALLOW_BUILDS: esbuild
 

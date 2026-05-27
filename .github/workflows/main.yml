@@ -43,8 +43,10 @@ jobs:
         run: npm install -g pnpm
 
       - name: install frontend dependencies
-        run: pnpm install --no-frozen-lockfile # change this to npm, pnpm or bun depending on which one you use.
-
+        run: |
+         pnpm install --no-frozen-lockfile
+         pnpm approve-builds
+         
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

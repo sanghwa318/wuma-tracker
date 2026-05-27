@@ -144,7 +144,7 @@ impl SignalingHandler {
                 .dangerous()
                 .with_custom_certificate_verifier(Arc::new(NoCertVerifier))
                 .with_no_client_auth();
-            Connector::Rustls(Arc::new(tokio_rustls::TlsConnector::from(Arc::new(config)).into()))
+            Connector::Rustls(Arc::new(config))
         };
 
         // 3. 새로운 WebSocket 연결을 수립합니다 (인증서 검증 없이).

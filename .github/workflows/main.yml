@@ -30,7 +30,7 @@ jobs:
         env:
           PNPM_ALLOW_BUILDS: esbuild
 
-      - uses: tauri-apps/tauri-action@v0
+       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PNPM_ALLOW_BUILDS: esbuild
@@ -40,3 +40,4 @@ jobs:
           releaseBody: "See the assets to download this version and install."
           releaseDraft: true
           prerelease: false
+          args: --no-bundle

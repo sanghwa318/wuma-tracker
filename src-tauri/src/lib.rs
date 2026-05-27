@@ -171,10 +171,6 @@ pub async fn run() {
     let offsets_for_supervisor = offsets_shared.clone();
 
     let mut builder = tauri::Builder::default().plugin(tauri_plugin_clipboard_manager::init());
-    #[cfg(not(feature = "store"))]
-    {
-        builder = builder.plugin(tauri_plugin_updater::Builder::new().build());
-    }
     #[cfg(desktop)]
     {
         builder = builder.plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
